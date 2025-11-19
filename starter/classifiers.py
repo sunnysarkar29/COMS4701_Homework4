@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import sys
+
 class Classifiers():
     def __init__(self,data):
         ''' 
@@ -18,11 +20,45 @@ class Classifiers():
         # all the data should be nxd arrays where n is the number of samples and d is the dimension of the data
         # all the labels should be nx1 vectors with binary labels in each entry 
         '''
-        
-        self.training_data = None
-        self.training_labels = None
-        self.testing_data = None
-        self.testing_labels = None
+
+        figPartA, axPartA = plt.subplots()
+
+        for _a, _b, _label in zip(data.A, data.B, data.label):
+            axPartA.scatter(_a, _b, color=('red' if _label == 1 else 'blue'), \
+                                    marker='o' if _label == 1 else 'x', \
+                                    label='Classifier A' if _label == 1 else 'Classifier B')
+
+        plt.title('Part A: Data Visualization')
+        plt.xlabel('A')
+        plt.ylabel('B')
+        plt.legend(['A', 'B'])
+        plt.savefig('partA.png')
+        plt.show()
+
+        data_numpy = df.to_numpy()
+        X = data_numpy[:, :2]
+        y = data_numpy[:, 2]
+
+        self.training_data, self.testing_data, self.training_labels, self.testing_labels = train_test_split(X, y, test_size=0.4, random_state=1)
+
+        # import pdb; pdb.set_trace()
+
+        orig_stdout = sys.stdout
+        f = open('partB.txt', 'w')
+        sys.stdout = f
+
+        print(f'Training Data: [Number of samples: {len(self.training_labels)}]')
+        print(self.training_data)
+        print('\nTraining Labels: ')
+        print(self.training_labels)
+        print(f'\nTesting Data: [Number of samples: {len(self.testing_labels)}]')
+        print(self.testing_data)
+        print('\nTesting Labels: ')
+        print(self.testing_labels)
+
+        sys.stdout = orig_stdout
+        f.close()
+
         self.outputs = []
     
     def test_clf(self, clf, classifier_name=''):
