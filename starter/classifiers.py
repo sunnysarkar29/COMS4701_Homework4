@@ -59,7 +59,6 @@ class Classifiers():
         f.close()
 
         self.foldDatas, self.foldLabels = self.get5FoldSplit(self.training_data, self.training_labels)
-        import pdb; pdb.set_trace()
 
         self.outputs = []
 
@@ -121,6 +120,17 @@ class Classifiers():
                 
         clf = KNeighborsClassifier(n_neighbors=bestParams[0], leaf_size=bestParams[1])
         clf.fit(self.training_data, self.training_labels)
+        trainingScore = clf.score(self.training_data, self.training_labels)
+        print(f'Final NN Training Score: {trainingScore}')
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f'Final NN Testing Score: {testingScore}')
+
+        self.outputs.append(f'K-Nearest Neighbors, {trainingScore}, {testingScore}')
+
+        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='K-Nearest Neighbors')
+
+
+        
         
     def classifyLogisticRegression(self):
         # TODO: Write code to run a Logistic Regression classifier
@@ -161,7 +171,7 @@ class Classifiers():
 
         plt.margins(0.0)
         # uncomment the following line to save images
-        # plt.savefig(f'{classifier_name}.png')
+        plt.savefig(f'{classifier_name}.png')
         plt.show()
 
     
