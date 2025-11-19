@@ -26,7 +26,7 @@ class Classifiers():
         for _a, _b, _label in zip(data.A, data.B, data.label):
             axPartA.scatter(_a, _b, color=('red' if _label == 1 else 'blue'), \
                                     marker='o' if _label == 1 else 'x', \
-                                    label='Classifier A' if _label == 1 else 'Classifier B')
+                                    label='Classifier 1' if _label == 1 else 'Classifier 0')
 
         plt.title('Part A: Data Visualization')
         plt.xlabel('A')
@@ -41,7 +41,6 @@ class Classifiers():
 
         self.training_data, self.testing_data, self.training_labels, self.testing_labels = train_test_split(X, y, test_size=0.4, random_state=1)
 
-        # import pdb; pdb.set_trace()
 
         orig_stdout = sys.stdout
         f = open('partB.txt', 'w')
@@ -59,7 +58,30 @@ class Classifiers():
         sys.stdout = orig_stdout
         f.close()
 
+        self.foldDatas, self.foldLabels = self.get5FoldSplit(self.training_data, self.training_labels)
+        import pdb; pdb.set_trace()
+
         self.outputs = []
+
+    def get5FoldSplit(self, data, labels, num_folds=5):
+        len_data = len(data)
+        fold_size = len_data // num_folds
+        foldsD, foldsL = [], []
+        idx = [i * fold_size for i in range(num_folds)]
+
+        for i in range(num_folds):
+            if i == num_folds - 1:
+                d = data[idx[i]:]
+                l = labels[idx[i]:]
+            else:
+                d = data[idx[i]:idx[i+1]]
+                l = labels[idx[i]:idx[i+1]]
+                
+            foldsD.append(d)
+            foldsL.append(l)
+
+        return foldsD, foldsL
+
     
     def test_clf(self, clf, classifier_name=''):
         # TODO: Fit the classifier and extrach the best score, training score and parameters
@@ -69,7 +91,36 @@ class Classifiers():
 
     def classifyNearestNeighbors(self):
         # TODO: Write code to run a Nearest Neighbors classifier
-        pass
+        avgScore = None
+        bestParams = None
+        for n_neighbors in range(1, 20, 2):
+            for leaf_size in range(5, 31, 5):
+                total_score = 0
+                for i in range(5):
+                    trainIdx = [j for j in range(5) if j != i]
+                    validationIdx = i
+
+                    trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
+                    trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
+
+                    validationData = self.foldDatas[validationIdx]
+                    validationLabels = self.foldLabels[validationIdx]
+
+                    clf = KNeighborsClassifier(n_neighbors=n_neighbors, leaf_size=leaf_size)
+                    clf.fit(trainData, trainLabels)
+                    score = clf.score(validationData, validationLabels)
+                    total_score += score
+
+                newAvg = total_score / 5
+                print(f'NN with n_neighbors={n_neighbors}, leaf_size={leaf_size} has average score: {newAvg}')
+                if avgScore is None or newAvg > avgScore:
+                    avgScore = newAvg
+                    bestParams = (n_neighbors, leaf_size)
+
+        print(f'Best NN params: n_neighbors={bestParams[0]}, leaf_size={bestParams[1]} with average score: {avgScore}')
+                
+        clf = KNeighborsClassifier(n_neighbors=bestParams[0], leaf_size=bestParams[1])
+        clf.fit(self.training_data, self.training_labels)
         
     def classifyLogisticRegression(self):
         # TODO: Write code to run a Logistic Regression classifier
