@@ -15,10 +15,10 @@ import sys
 
 class Classifiers():
     def __init__(self,data):
-        ''' 
-        TODO: Write code to convert the given pandas dataframe into training and testing data 
+        '''
+        TODO: Write code to convert the given pandas dataframe into training and testing data
         # all the data should be nxd arrays where n is the number of samples and d is the dimension of the data
-        # all the labels should be nx1 vectors with binary labels in each entry 
+        # all the labels should be nx1 vectors with binary labels in each entry
         '''
 
         figPartA, axPartA = plt.subplots()
@@ -75,13 +75,13 @@ class Classifiers():
             else:
                 d = data[idx[i]:idx[i+1]]
                 l = labels[idx[i]:idx[i+1]]
-                
+
             foldsD.append(d)
             foldsL.append(l)
 
         return foldsD, foldsL
 
-    
+
     def test_clf(self, clf, classifier_name=''):
         # TODO: Fit the classifier and extrach the best score, training score and parameters
         pass
@@ -117,7 +117,7 @@ class Classifiers():
                     bestParams = (n_neighbors, leaf_size)
 
         print(f'Best NN params: n_neighbors={bestParams[0]}, leaf_size={bestParams[1]} with average score: {avgScore}')
-                
+
         clf = KNeighborsClassifier(n_neighbors=bestParams[0], leaf_size=bestParams[1])
         clf.fit(self.training_data, self.training_labels)
         trainingScore = clf.score(self.training_data, self.training_labels)
@@ -129,13 +129,46 @@ class Classifiers():
 
         self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='K-Nearest Neighbors')
 
-
-        
-        
     def classifyLogisticRegression(self):
         # TODO: Write code to run a Logistic Regression classifier
-        pass
-    
+        avgScore = None
+        bestParams = None
+        for c in [0.1, 0.5, 1, 5 ,10, 50, 100]:
+            total_score = 0
+            for i in range(5):
+                trainIdx = [j for j in range(5) if j != i]
+                validationIdx = i
+
+                trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
+                trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
+
+                validationData = self.foldDatas[validationIdx]
+                validationLabels = self.foldLabels[validationIdx]
+
+                clf = LogisticRegression(C=c)
+                clf.fit(trainData, trainLabels)
+                score = clf.score(validationData, validationLabels)
+                total_score += score
+
+            newAvg = total_score / 5
+            print(f'Logistic Regression with C={c} has average score: {newAvg}')
+            if avgScore is None or newAvg > avgScore:
+                avgScore = newAvg
+                bestParams = c
+
+        print(f'Best Logistic Regression params: c={bestParams[0]} with average score: {avgScore}')
+
+        clf = LogisticRegression(C=bestParams)
+        clf.fit(self.training_data, self.training_labels)
+        trainingScore = clf.score(self.training_data, self.training_labels)
+        print(f'Final Logistic Regression Training Score: {trainingScore}')
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f'Final Logistic Regression Testing Score: {testingScore}')
+
+        self.outputs.append(f'Logistic Regression, {trainingScore}, {testingScore}')
+
+        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='Logistic Regression')
+
     def classifyDecisionTree(self):
         # TODO: Write code to run a Logistic Regression classifier
         pass
@@ -174,7 +207,7 @@ class Classifiers():
         plt.savefig(f'{classifier_name}.png')
         plt.show()
 
-    
+
 if __name__ == "__main__":
     df = pd.read_csv('input.csv')
     models = Classifiers(df)
