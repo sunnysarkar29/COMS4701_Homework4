@@ -171,11 +171,85 @@ class Classifiers():
 
     def classifyDecisionTree(self):
         # TODO: Write code to run a Logistic Regression classifier
-        pass
+        avgScore = None
+        bestParams = None
+        for max_depth in range(1, 20, 2):
+            for min_samples_split in range(5, 31, 5):
+                total_score = 0
+                for i in range(5):
+                    trainIdx = [j for j in range(5) if j != i]
+                    validationIdx = i
+
+                    trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
+                    trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
+
+                    validationData = self.foldDatas[validationIdx]
+                    validationLabels = self.foldLabels[validationIdx]
+
+                    clf = DecisionTreeClassifier(max_depth=max_depth, min_samples_split=min_samples_split)
+                    clf.fit(trainData, trainLabels)
+                    score = clf.score(validationData, validationLabels)
+                    total_score += score
+
+                newAvg = total_score / 5
+                print(f'Decision Tree with max_depth={max_depth}, min_samples_split={min_samples_split} has average score: {newAvg}')
+                if avgScore is None or newAvg > avgScore:
+                    avgScore = newAvg
+                    bestParams = (max_depth, min_samples_split)
+
+        print(f'Best Decision Tree params: n_neighbors={bestParams[0]}, leaf_size={bestParams[1]} with average score: {avgScore}')
+
+        clf = DecisionTreeClassifier(max_depth=bestParams[0], min_samples_split=bestParams[1])
+        clf.fit(self.training_data, self.training_labels)
+        trainingScore = clf.score(self.training_data, self.training_labels)
+        print(f'Final Decision Tree Training Score: {trainingScore}')
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f'Final Decision Tree Testing Score: {testingScore}')
+
+        self.outputs.append(f'Decision Tree, {trainingScore}, {testingScore}')
+
+        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='Decision Tree')
 
     def classifyRandomForest(self):
         # TODO: Write code to run a Random Forest classifier
-        pass
+        avgScore = None
+        bestParams = None
+        for max_depth in range(1, 20, 2):
+            for min_samples_split in range(5, 31, 5):
+                total_score = 0
+                for i in range(5):
+                    trainIdx = [j for j in range(5) if j != i]
+                    validationIdx = i
+
+                    trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
+                    trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
+
+                    validationData = self.foldDatas[validationIdx]
+                    validationLabels = self.foldLabels[validationIdx]
+
+                    clf = RandomForestClassifier(max_depth=max_depth, min_samples_split=min_samples_split)
+                    clf.fit(trainData, trainLabels)
+                    score = clf.score(validationData, validationLabels)
+                    total_score += score
+
+                newAvg = total_score / 5
+                print(f'Random Forest with max_depth={max_depth}, min_samples_split={min_samples_split} has average score: {newAvg}')
+                if avgScore is None or newAvg > avgScore:
+                    avgScore = newAvg
+                    bestParams = (max_depth, min_samples_split)
+
+        print(f'Best Random Forest params: n_neighbors={bestParams[0]}, leaf_size={bestParams[1]} with average score: {avgScore}')
+
+        clf = RandomForestClassifier(max_depth=bestParams[0], min_samples_split=bestParams[1])
+        clf.fit(self.training_data, self.training_labels)
+        trainingScore = clf.score(self.training_data, self.training_labels)
+        print(f'Final Random Forest Training Score: {trainingScore}')
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f'Final Random Forest Testing Score: {testingScore}')
+
+        self.outputs.append(f'Random Forest, {trainingScore}, {testingScore}')
+
+        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='Random Forest')
 
     def classifyAdaBoost(self):
         # TODO: Write code to run a AdaBoost classifier
