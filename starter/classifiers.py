@@ -253,7 +253,43 @@ class Classifiers():
 
     def classifyAdaBoost(self):
         # TODO: Write code to run a AdaBoost classifier
-        pass
+        avgScore = None
+        bestParams = None
+        for number_of_estimators in [0.1, 0.5, 1, 5 ,10, 50, 100]:
+            total_score = 0
+            for i in range(5):
+                trainIdx = [j for j in range(5) if j != i]
+                validationIdx = i
+
+                trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
+                trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
+
+                validationData = self.foldDatas[validationIdx]
+                validationLabels = self.foldLabels[validationIdx]
+
+                clf = AdaBoostClassifier(n_estimators=number_of_estimators)
+                clf.fit(trainData, trainLabels)
+                score = clf.score(validationData, validationLabels)
+                total_score += score
+
+            newAvg = total_score / 5
+            print(f'Ada Boost with number_of_estimators={number_of_estimators} has average score: {newAvg}')
+            if avgScore is None or newAvg > avgScore:
+                avgScore = newAvg
+                bestParams = number_of_estimators
+
+        print(f'Best Ada Boost params: number_of_estimators={bestParams[0]} with average score: {avgScore}')
+
+        clf = AdaBoostClassifier(n_estimators=bestParams)
+        clf.fit(self.training_data, self.training_labels)
+        trainingScore = clf.score(self.training_data, self.training_labels)
+        print(f'Final Ada Boost Training Score: {trainingScore}')
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f'Final Ada Boost Testing Score: {testingScore}')
+
+        self.outputs.append(f'Ada Boost, {trainingScore}, {testingScore}')
+
+        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='Ada Boost')
 
     def plot(self, X, Y, model,classifier_name = ''):
         X1 = X[:, 0]
