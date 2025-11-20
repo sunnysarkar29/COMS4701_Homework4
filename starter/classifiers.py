@@ -34,6 +34,7 @@ class Classifiers():
         plt.legend(['A', 'B'])
         plt.savefig('partA.png')
         plt.show()
+        # plt.show(block=False)
 
         data_numpy = df.to_numpy()
         X = data_numpy[:, :2]
@@ -84,50 +85,29 @@ class Classifiers():
 
     def test_clf(self, clf, classifier_name=''):
         # TODO: Fit the classifier and extrach the best score, training score and parameters
-        pass
+        clf.fit(self.training_data, self.training_labels)
+        print(clf.cv_results_)
+
+        print(clf.cv_results_['mean_test_score'])
+        print(clf.best_score_)
+        print(clf.best_params_)
+        print(clf.best_estimator_)
+
+        df = pd.DataFrame(clf.cv_results_)
+        df.to_csv('knn.csv', index=False)
+
+        clf = clf.best_estimator_
+        testingScore = clf.score(self.testing_data, self.testing_labels)
+        print(f"Testing Score: {testingScore}")
         # Use the following line to plot the results
-        # self.plot(self.testing_data, clf.predict(self.testing_data),model=clf,classifier_name=name)
+
+        self.plot(self.testing_data, clf.predict(self.testing_data),model=clf,classifier_name=classifier_name)
+        import pdb; pdb.set_trace()
 
     def classifyNearestNeighbors(self):
         # TODO: Write code to run a Nearest Neighbors classifier
-        avgScore = None
-        bestParams = None
-        for n_neighbors in range(1, 20, 2):
-            for leaf_size in range(5, 31, 5):
-                total_score = 0
-                for i in range(5):
-                    trainIdx = [j for j in range(5) if j != i]
-                    validationIdx = i
-
-                    trainData = np.vstack([self.foldDatas[j] for j in trainIdx])
-                    trainLabels = np.hstack([self.foldLabels[j] for j in trainIdx])
-
-                    validationData = self.foldDatas[validationIdx]
-                    validationLabels = self.foldLabels[validationIdx]
-
-                    clf = KNeighborsClassifier(n_neighbors=n_neighbors, leaf_size=leaf_size)
-                    clf.fit(trainData, trainLabels)
-                    score = clf.score(validationData, validationLabels)
-                    total_score += score
-
-                newAvg = total_score / 5
-                print(f'NN with n_neighbors={n_neighbors}, leaf_size={leaf_size} has average score: {newAvg}')
-                if avgScore is None or newAvg > avgScore:
-                    avgScore = newAvg
-                    bestParams = (n_neighbors, leaf_size)
-
-        print(f'Best NN params: n_neighbors={bestParams[0]}, leaf_size={bestParams[1]} with average score: {avgScore}')
-
-        clf = KNeighborsClassifier(n_neighbors=bestParams[0], leaf_size=bestParams[1])
-        clf.fit(self.training_data, self.training_labels)
-        trainingScore = clf.score(self.training_data, self.training_labels)
-        print(f'Final NN Training Score: {trainingScore}')
-        testingScore = clf.score(self.testing_data, self.testing_labels)
-        print(f'Final NN Testing Score: {testingScore}')
-
-        self.outputs.append(f'K-Nearest Neighbors, {trainingScore}, {testingScore}')
-
-        self.plot(self.testing_data, self.testing_labels, model=clf, classifier_name='K-Nearest Neighbors')
+        clf = GridSearchCV(KNeighborsClassifier(), {'n_neighbors': range(1, 20, 2), 'leaf_size': range(5, 31, 5)}, cv=None)
+        self.test_clf(clf)
 
     def classifyLogisticRegression(self):
         # TODO: Write code to run a Logistic Regression classifier
@@ -156,7 +136,7 @@ class Classifiers():
                 avgScore = newAvg
                 bestParams = c
 
-        print(f'Best Logistic Regression params: c={bestParams[0]} with average score: {avgScore}')
+        print(f'Best Logistic Regression params: c={bestParams} with average score: {avgScore}')
 
         clf = LogisticRegression(C=bestParams)
         clf.fit(self.training_data, self.training_labels)
@@ -255,7 +235,7 @@ class Classifiers():
         # TODO: Write code to run a AdaBoost classifier
         avgScore = None
         bestParams = None
-        for number_of_estimators in [0.1, 0.5, 1, 5 ,10, 50, 100]:
+        for number_of_estimators in range(10, 71, 10):
             total_score = 0
             for i in range(5):
                 trainIdx = [j for j in range(5) if j != i]
@@ -278,7 +258,7 @@ class Classifiers():
                 avgScore = newAvg
                 bestParams = number_of_estimators
 
-        print(f'Best Ada Boost params: number_of_estimators={bestParams[0]} with average score: {avgScore}')
+        print(f'Best Ada Boost params: number_of_estimators={bestParams} with average score: {avgScore}')
 
         clf = AdaBoostClassifier(n_estimators=bestParams)
         clf.fit(self.training_data, self.training_labels)
@@ -316,6 +296,7 @@ class Classifiers():
         # uncomment the following line to save images
         plt.savefig(f'{classifier_name}.png')
         plt.show()
+        # plt.show(block=False)
 
 
 if __name__ == "__main__":
