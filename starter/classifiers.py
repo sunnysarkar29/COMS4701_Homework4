@@ -86,28 +86,31 @@ class Classifiers():
     def test_clf(self, clf, classifier_name=''):
         # TODO: Fit the classifier and extrach the best score, training score and parameters
         clf.fit(self.training_data, self.training_labels)
-        print(clf.cv_results_)
+        # print(clf.cv_results_)
 
-        print(clf.cv_results_['mean_test_score'])
-        print(clf.best_score_)
-        print(clf.best_params_)
-        print(clf.best_estimator_)
+        # print(clf.cv_results_['mean_test_score'])
+        # print(clf.best_score_)
+        # print(clf.best_params_)
+        # print(clf.best_estimator_)
+
+        trainingScore = clf.best_score_
 
         df = pd.DataFrame(clf.cv_results_)
-        df.to_csv('knn.csv', index=False)
+        df.to_csv(f'{classifier_name}.csv', index=False)
 
         clf = clf.best_estimator_
         testingScore = clf.score(self.testing_data, self.testing_labels)
-        print(f"Testing Score: {testingScore}")
+        # print(f"Testing Score: {testingScore}")
         # Use the following line to plot the results
 
+        self.outputs.append(f'Logistic Regression, {trainingScore}, {testingScore}')
         self.plot(self.testing_data, clf.predict(self.testing_data),model=clf,classifier_name=classifier_name)
         import pdb; pdb.set_trace()
 
     def classifyNearestNeighbors(self):
         # TODO: Write code to run a Nearest Neighbors classifier
         clf = GridSearchCV(KNeighborsClassifier(), {'n_neighbors': range(1, 20, 2), 'leaf_size': range(5, 31, 5)}, cv=None)
-        self.test_clf(clf)
+        self.test_clf(clf, 'NearestNeighbors')
 
     def classifyLogisticRegression(self):
         # TODO: Write code to run a Logistic Regression classifier
