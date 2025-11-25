@@ -43,12 +43,11 @@ for idx, num_samples in enumerate([5, 10, 50, 100]):
 
 
     print([x[1] for x in dat])
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     ax.plot(feature_range, np.log(ratios), line_styles[idx], label=f'N={num_samples:,}')
 
 plt.legend()
 plt.tight_layout()
 plt.grid(True)
-
-plt.show()
+plt.savefig('partB.png')

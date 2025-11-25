@@ -32,8 +32,6 @@ class Classifiers():
         plt.xlabel('A')
         plt.ylabel('B')
         plt.savefig('partA.png')
-        plt.show()
-        # plt.show(block=False)
 
         data_numpy = df.to_numpy()
         X = data_numpy[:, :2]
@@ -144,8 +142,6 @@ class Classifiers():
         plt.margins(0.0)
         # uncomment the following line to save images
         plt.savefig(f'{classifier_name}.png')
-        plt.show()
-        # plt.show(block=False)
 
 
 if __name__ == "__main__":
